@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
     final authService = AuthService();
     return Scaffold(
       appBar: AppBar(
-        title: Text('NegoCasa 🏠',
+        title: Text('Negos 🏠',
             style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF2E7D32),
         foregroundColor: Colors.white,
@@ -22,7 +22,7 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
       body: Center(
-        child: Text('Bienvenue sur NegoCasa !',
+        child: Text('Bienvenue sur Negos !',
             style: GoogleFonts.poppins(fontSize: 20)),
       ),
     );
