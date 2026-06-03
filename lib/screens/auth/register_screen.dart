@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,21 +20,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isLoading = false;
 
   void _register() async {
-    setState(() => _isLoading = true);
-    try {
-      await _authService.register(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        nom: _nomController.text.trim(),
-        role: _selectedRole,
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur : $e')),
-      );
-    }
-    setState(() => _isLoading = false);
+  final nom = _nomController.text.trim();
+  final email = _emailController.text.trim();
+  final password = _passwordController.text.trim();
+
+  // Validations
+  if (nom.isEmpty) {
+    _showMessage('⚠️ Veuillez entrer votre nom complet');
+    return;
   }
+  if (email.isEmpty) {
+    _showMessage('⚠️ Veuillez entrer votre adresse email');
+    return;
+  }
+  if (!email.contains('@') || !email.contains('.')) {
+    _showMessage('⚠️ Adresse email invalide (ex: nom@gmail.com)');
+    return;
+  }
+  if (password.isEmpty) {
+    _showMessage('⚠️ Veuillez entrer un mot de passe');
+    return;
+  }
+  if (password.length < 6) {
+    _showMessage('⚠️ Le mot de passe doit contenir au moins 6 caractères');
+    return;
+  }
+
+  setState(() => _isLoading = true);
+  try {
+    await _authService.register(
+      email: email,
+      password: password,
+      nom: nom,
+      role: _selectedRole,
+    );
+    _showMessage('✅ Compte créé avec succès !', isSuccess: true);
+  } on FirebaseAuthException catch (e) {
+    switch (e.code) {
+      case 'email-already-in-use':
+        _showMessage('⚠️ Cet email est déjà utilisé');
+        break;
+      case 'invalid-email':
+        _showMessage('⚠️ Adresse email invalide');
+        break;
+      case 'weak-password':
+        _showMessage('⚠️ Mot de passe trop faible (min. 6 caractères)');
+        break;
+      default:
+        _showMessage('⚠️ Erreur : ${e.message}');
+    }
+  }
+  setState(() => _isLoading = false);
+}
+
+void _showMessage(String message, {bool isSuccess = false}) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(message,
+          style: const TextStyle(color: Colors.white)),
+      backgroundColor: isSuccess ? const Color(0xFF2E7D32) : Colors.red[700],
+      duration: const Duration(seconds: 3),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
